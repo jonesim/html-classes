@@ -1,0 +1,25 @@
+
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "make-html"
+version = "0.0.1"
+description = "Classes to generate HTML"
+readme = "readme.md"
+authors = [{ name = "Ian Jones"}]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/jonesim/html-classes"
+
+[tool.setuptools]
+packages = ['html_classes']

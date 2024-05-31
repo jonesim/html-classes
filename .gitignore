@@ -1,0 +1,4 @@
+*.pyc
+/.idea/
+/dist/
+/make_html.egg-info/
