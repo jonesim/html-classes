@@ -78,6 +78,15 @@ class HtmlDiv(HtmlElement):
     pass
 
 
+class HtmlLabel(HtmlElement):
+    element = 'label'
+
+
+class HtmlInput(HtmlElement):
+    element = 'input'
+    end_tag = False
+
+
 class HtmlTable(HtmlElement):
 
     element = 'table'
