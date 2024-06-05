@@ -30,7 +30,7 @@ class HtmlElement:
                  **kwargs):
         if element:
             self.element = element
-        self._contents = [contents] if contents else []
+        self._contents = contents if isinstance(contents, list) else ([contents] if contents else [])
         self.attributes = kwargs
         self.tool_tip(tooltip)
         self.colour = colour if colour else self.default_colour
@@ -47,14 +47,21 @@ class HtmlElement:
     def render(self):
         return mark_safe(f'<{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}>')
 
-    def append(self, html):
-        self._contents.append(html)
+    def append(self, additional_contents):
+        if isinstance(additional_contents, list):
+            self._contents += additional_contents
+        else:
+            self._contents.append(additional_contents)
 
     def add_class(self, classes):
         self.css_classes += classes.split(' ')
 
     def __str__(self):
         return self.render()
+
+    def __add__(self, additional_contents):
+        self.append(additional_contents)
+        return self
 
     @staticmethod
     def add_multiple_elements(data, element, **kwargs):
