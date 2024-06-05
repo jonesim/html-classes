@@ -41,6 +41,9 @@ class HtmlElement:
         if end_tag is not None:
             self.end_tag = end_tag
 
+    def add_attribute(self, attr_name, attr_value=None):
+        self.attributes[attr_name] = attr_value
+
     def get_contents(self):
         return ''.join([str(c) for c in self._contents])
 
