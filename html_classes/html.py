@@ -92,19 +92,29 @@ class HtmlTable(HtmlElement):
     element = 'table'
 
     def get_contents(self):
-        fmt_items = []
-        for i in self.rows[:self.headers]:
-            fmt_items.append(self.add_multiple_elements(i, 'th', css_classes=self.header_classes))
+        if self.headers:
+            header_rows = []
+            for i in self.rows[:self.headers]:
+                header_rows.append(self.add_multiple_elements(i, 'th', css_classes=self.header_classes))
+            header = self.add_multiple_elements(header_rows, 'tr')
+            if self.grouped:
+                header = HtmlElement(element='thead', contents=header).render()
+        else:
+            header = ''
+        body_rows = []
         for r in self.rows[self.headers:]:
-            fmt_items.append(self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes))
-            fmt_items.append(self.add_multiple_elements(r[self.left_headers:], 'td', css_classes=self.cell_classes))
-
-        return self.add_multiple_elements(fmt_items, 'tr')
+            body_rows.append(self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
+                             self.add_multiple_elements(r[self.left_headers:], 'td', css_classes=self.cell_classes))
+        body = self.add_multiple_elements(body_rows, 'tr')
+        if self.grouped:
+            body = HtmlElement(element='tbody', contents=body).render()
+        return header + body
 
     def __init__(self, data=None, headers=0, left_headers=0, cell_classes=None, header_classes=None, row_classes=None,
-                 **kwargs):
+                 grouped=False, **kwargs):
         super().__init__(**kwargs)
         self._data = data
+        self.grouped = grouped
         self.headers = headers
         self.left_headers = left_headers
         self.rows = [] if not data else [r for r in data]
