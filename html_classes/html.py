@@ -78,6 +78,10 @@ class HtmlDiv(HtmlElement):
     pass
 
 
+class HtmlButton(HtmlElement):
+    element = 'button'
+
+
 class HtmlLabel(HtmlElement):
     element = 'label'
 
