@@ -10,20 +10,24 @@ class HtmlElement:
     default_classes = []
     colour_class = ''
     default_colour = None
+    end_tag = True
 
     def convert_kwargs(self):
         if self.colour:
             self.css_classes.append(self.colour_class + self.colour)
         kwarg_str = '' if not self.css_classes else f' class="{" ".join(self.css_classes)}"'
         for k, v in self.attributes.items():
-            kwarg_str += f' {k.replace("_", "-")}="{v}"'
+            kwarg_str += f' {k.replace("_", "-")}'
+            if v is not None:
+                kwarg_str += f'="{v}"'
         return kwarg_str
 
     def tool_tip(self, tooltip):
         if tooltip:
             self.attributes.update({'data-tooltip': "tooltip", 'data-original-title': tooltip, 'data-html': 'true'})
 
-    def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, **kwargs):
+    def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, end_tag=None,
+                 **kwargs):
         if element:
             self.element = element
         self._contents = [contents] if contents else []
@@ -34,6 +38,8 @@ class HtmlElement:
             self.css_classes = css_classes.split(' ') if type(css_classes) == str else css_classes.copy()
         else:
             self.css_classes = self.default_classes.copy()
+        if end_tag is not None:
+            self.end_tag = end_tag
 
     def get_contents(self):
         return ''.join([str(c) for c in self._contents])
