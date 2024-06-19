@@ -72,9 +72,14 @@ class HtmlElement:
 
     @staticmethod
     def add_multiple_elements(data, element, **kwargs):
+        if isinstance(data, HtmlElement):
+            return data.render()
         elements = []
         for d in data:
-            elements.append(HtmlElement(element=element, contents=str(d), **kwargs).render())
+            if isinstance(d, HtmlElement):
+                elements.append(d.render())
+            else:
+                elements.append(HtmlElement(element=element, contents=str(d), **kwargs).render())
         return ''.join(elements)
 
 
@@ -95,6 +100,28 @@ class HtmlInput(HtmlElement):
     end_tag = False
 
 
+class HtmlTh(HtmlElement):
+    element = 'th'
+
+
+class HtmlTd(HtmlElement):
+    element = 'td'
+
+
+class HtmlTr(HtmlElement):
+    element = 'tr'
+
+    def __init__(self, row_data=None, cell_classes=None, **kwargs):
+        super().__init__(**kwargs)
+        self.row_data = row_data
+        self.cell_classes = cell_classes
+
+    def get_contents(self):
+        if self.row_data:
+            return self.add_multiple_elements(self.row_data, 'td', css_classes=self.cell_classes)
+        return ''.join([str(c) for c in self._contents])
+
+
 class HtmlTable(HtmlElement):
 
     element = 'table'
@@ -103,7 +130,10 @@ class HtmlTable(HtmlElement):
         if self.headers:
             header_rows = []
             for i in self.rows[:self.headers]:
-                header_rows.append(self.add_multiple_elements(i, 'th', css_classes=self.header_classes))
+                if isinstance(i, HtmlTr):
+                    header_rows.append(i)
+                else:
+                    header_rows.append(self.add_multiple_elements(i, 'th', css_classes=self.header_classes))
             header = self.add_multiple_elements(header_rows, 'tr')
             if self.grouped:
                 header = HtmlElement(element='thead', contents=header).render()
@@ -111,9 +141,12 @@ class HtmlTable(HtmlElement):
             header = ''
         body_rows = []
         for r in self.rows[self.headers:]:
-            body_rows.append(self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
+            if isinstance(r, HtmlTr):
+                body_rows.append(r)
+            else:
+                body_rows.append(self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
                              self.add_multiple_elements(r[self.left_headers:], 'td', css_classes=self.cell_classes))
-        body = self.add_multiple_elements(body_rows, 'tr')
+        body = self.add_multiple_elements(body_rows, 'tr' , css_classes=self.row_classes)
         if self.grouped:
             body = HtmlElement(element='tbody', contents=body).render()
         return header + body
