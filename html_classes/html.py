@@ -20,6 +20,9 @@ class HtmlElement:
             kwarg_str += f' {k.replace("_", "-")}'
             if v is not None:
                 kwarg_str += f'="{v}"'
+        if self.raw_attributes:
+            for k, v in self.raw_attributes.items():
+                kwarg_str += f' {k}="{v}"'
         return kwarg_str
 
     def tool_tip(self, tooltip):
@@ -27,12 +30,13 @@ class HtmlElement:
             self.attributes.update({'data-tooltip': "tooltip", 'data-original-title': tooltip, 'data-html': 'true'})
 
     def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, end_tag=None,
-                 **kwargs):
+                 raw_attributes=None, **kwargs):
         if element:
             self.element = element
         self._contents = contents if isinstance(contents, list) else ([contents] if contents else [])
         self.attributes = kwargs
         self.tool_tip(tooltip)
+        self.raw_attributes = raw_attributes
         self.colour = colour if colour else self.default_colour
         if css_classes:
             self.css_classes = css_classes.split(' ') if type(css_classes) == str else css_classes.copy()
