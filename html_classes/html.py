@@ -10,7 +10,6 @@ class HtmlElement:
     default_classes = []
     colour_class = ''
     default_colour = None
-    end_tag = True
 
     def convert_kwargs(self):
         if self.colour:
@@ -26,8 +25,8 @@ class HtmlElement:
         if tooltip:
             self.attributes.update({'data-tooltip': "tooltip", 'data-original-title': tooltip, 'data-html': 'true'})
 
-    def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, end_tag=None,
-                 **kwargs):
+    def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, end=False,
+                 void_tag=None, **kwargs):
         if element:
             self.element = element
         self._contents = contents if isinstance(contents, list) else ([contents] if contents else [])
@@ -38,8 +37,8 @@ class HtmlElement:
             self.css_classes = css_classes.split(' ') if type(css_classes) == str else css_classes.copy()
         else:
             self.css_classes = self.default_classes.copy()
-        if end_tag is not None:
-            self.end_tag = end_tag
+        self.void_tag = void_tag
+        self.end = end
 
     def add_attribute(self, attr_name, attr_value=None):
         self.attributes[attr_name] = attr_value
@@ -48,7 +47,15 @@ class HtmlElement:
         return ''.join([str(c) for c in self._contents])
 
     def render(self):
-        return mark_safe(f'<{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}>')
+        if self.void_tag:
+            if self.end:
+                html = f'<{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}><{self.void_tag}>'
+                return mark_safe(html)
+            else:
+                html = f'<{self.void_tag}><{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}>'
+                return mark_safe(html)
+        else:
+            return mark_safe(f'<{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}>')
 
     def append(self, additional_contents):
         if isinstance(additional_contents, list):
@@ -88,7 +95,6 @@ class HtmlLabel(HtmlElement):
 
 class HtmlInput(HtmlElement):
     element = 'input'
-    end_tag = False
 
 
 class HtmlTable(HtmlElement):
