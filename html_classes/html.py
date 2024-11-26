@@ -48,7 +48,11 @@ class HtmlElement:
         return ''.join([str(c) for c in self._contents])
 
     def render(self):
-        return mark_safe(f'<{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}>')
+        contents = self.get_contents()
+        if len(contents) > 0 or self.end_tag:
+            return mark_safe(f'<{self.element}{self.convert_kwargs()}>{contents}</{self.element}>')
+        else:
+            return mark_safe(f'<{self.element}{self.convert_kwargs()}/>')
 
     def append(self, additional_contents):
         if isinstance(additional_contents, list):
