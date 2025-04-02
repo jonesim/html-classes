@@ -1,7 +1,7 @@
 import unittest
 
 from html_classes.font_awesome import font_awesome
-from html_classes.html import HtmlElement
+from html_classes.html import HtmlElement, HtmlRoot
 
 
 class TestHtml(unittest.TestCase):
@@ -25,3 +25,29 @@ class TestHtml(unittest.TestCase):
                            css_classes='btn btn-sm btn-outline-dark')
         expected_result = '<button class="btn btn-sm btn-outline-dark"><i class="fas fa-building"></i></button>'
         self.assertEqual(html.render(), expected_result)
+
+    def test_image(self):
+        self.assertEqual(HtmlElement(element='img', src='1.png', css_classes='bs4', data_test='1', end_tag=False).render(),
+                         '<img class="bs4" src="1.png" data-test="1"/>')
+
+    def test_append(self):
+        html = HtmlElement(element='span')
+        html.append(HtmlElement(element='h1', contents='test'))
+        html.append(HtmlElement(element='h2', contents='test2'))
+
+        expected_result = '<span><h1>test</h1><h2>test2</h2></span>'
+
+        self.assertEqual(html.render(), expected_result)
+
+    def test_add(self):
+        root = HtmlRoot()
+        root += HtmlElement(element='h1', contents='test')
+        root += HtmlElement(element='h2', contents='test2')
+
+        expected_result = '<h1>test</h1><h2>test2</h2>'
+
+        self.assertEqual(root.render(), expected_result)
+
+    def test_end_tag(self):
+        html = HtmlElement(element='br', end_tag=False)
+        self.assertEqual(html.render(), '<br/>')

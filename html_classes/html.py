@@ -52,7 +52,11 @@ class HtmlElement:
         return ''.join([str(c) for c in self._contents])
 
     def render(self):
-        return mark_safe(f'<{self.element}{self.convert_kwargs()}>{self.get_contents()}</{self.element}>')
+        contents = self.get_contents()
+        if len(contents) > 0 or self.end_tag:
+            return mark_safe(f'<{self.element}{self.convert_kwargs()}>{contents}</{self.element}>')
+        else:
+            return mark_safe(f'<{self.element}{self.convert_kwargs()}/>')
 
     def append(self, additional_contents):
         if isinstance(additional_contents, list):
@@ -162,3 +166,24 @@ class HtmlTable(HtmlElement):
         self.cell_classes = cell_classes
         self.header_classes = header_classes
         self.row_classes = row_classes
+
+
+class HtmlRoot:
+    def __init__(self, contents=None):
+        self._contents = contents if isinstance(contents, list) else ([contents] if contents else [])
+
+    def get_contents(self):
+        return ''.join([str(c) for c in self._contents])
+
+    def render(self):
+        return mark_safe(self.get_contents())
+
+    def append(self, additional_contents):
+        if isinstance(additional_contents, list):
+            self._contents += additional_contents
+        else:
+            self._contents.append(additional_contents)
+
+    def __add__(self, additional_contents):
+        self.append(additional_contents)
+        return self
