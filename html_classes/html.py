@@ -130,42 +130,72 @@ class HtmlTable(HtmlElement):
 
     element = 'table'
 
+    def _render_cells(self, row_data, element, base_classes=None):
+        if not self.col_styles and not self.col_classes:
+            return self.add_multiple_elements(row_data, element, css_classes=base_classes)
+        cells = []
+        for i, cell in enumerate(row_data):
+            if isinstance(cell, HtmlElement):
+                cells.append(cell.render())
+            else:
+                col_style = self.col_styles[i] if self.col_styles and i < len(self.col_styles) else None
+                col_cls = self.col_classes[i] if self.col_classes and i < len(self.col_classes) else None
+                classes = ' '.join(filter(None, [base_classes, col_cls])) or None
+                raw_attrs = {'style': col_style} if col_style else None
+                cells.append(HtmlElement(element=element, contents=str(cell),
+                                         css_classes=classes, raw_attributes=raw_attrs).render())
+        return ''.join(cells)
+
     def get_contents(self):
+        colgroup = ''
+        if self.col_widths:
+            cols = ''.join(f'<col style="width: {w};">' for w in self.col_widths)
+            colgroup = f'<colgroup>{cols}</colgroup>'
+
         if self.headers:
             header_rows = []
             for i in self.rows[:self.headers]:
                 if isinstance(i, HtmlTr):
                     header_rows.append(i)
                 else:
-                    header_rows.append(self.add_multiple_elements(i, 'th', css_classes=self.header_classes))
+                    header_rows.append(self._render_cells(i, 'th', base_classes=self.header_classes))
             header = self.add_multiple_elements(header_rows, 'tr')
             if self.grouped:
                 header = HtmlElement(element='thead', contents=header).render()
         else:
             header = ''
+
         body_rows = []
         for r in self.rows[self.headers:]:
             if isinstance(r, HtmlTr):
                 body_rows.append(r)
             else:
-                body_rows.append(self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
-                             self.add_multiple_elements(r[self.left_headers:], 'td', css_classes=self.cell_classes))
-        body = self.add_multiple_elements(body_rows, 'tr' , css_classes=self.row_classes)
+                body_rows.append(
+                    self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
+                    self._render_cells(r[self.left_headers:], 'td', base_classes=self.cell_classes)
+                )
+        body = self.add_multiple_elements(body_rows, 'tr', css_classes=self.row_classes)
         if self.grouped:
             body = HtmlElement(element='tbody', contents=body).render()
-        return header + body
+
+        return colgroup + header + body
 
     def __init__(self, data=None, headers=0, left_headers=0, cell_classes=None, header_classes=None, row_classes=None,
-                 grouped=False, **kwargs):
+                 grouped=False, col_widths=None, col_styles=None, col_classes=None, **kwargs):
+        if col_widths and 'raw_attributes' not in kwargs:
+            kwargs['raw_attributes'] = {'style': 'table-layout: fixed; width: 100%;'}
         super().__init__(**kwargs)
         self._data = data
-        self.grouped = grouped
+        self.grouped = grouped or bool(col_widths)
         self.headers = headers
         self.left_headers = left_headers
         self.rows = [] if not data else [r for r in data]
         self.cell_classes = cell_classes
         self.header_classes = header_classes
         self.row_classes = row_classes
+        self.col_widths = col_widths
+        self.col_styles = col_styles
+        self.col_classes = col_classes
 
 
 class HtmlRoot:
