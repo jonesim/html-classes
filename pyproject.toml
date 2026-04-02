@@ -9,9 +9,8 @@ version = "0.0.3"
 description = "Classes to generate HTML"
 readme = "readme.md"
 authors = [{ name = "Ian Jones"}]
-license = { file = "LICENSE" }
+license = "MIT"
 classifiers = [
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
