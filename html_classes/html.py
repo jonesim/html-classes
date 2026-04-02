@@ -91,6 +91,113 @@ class HtmlDiv(HtmlElement):
     pass
 
 
+class HtmlSpan(HtmlElement):
+    element = 'span'
+
+
+class HtmlA(HtmlElement):
+    element = 'a'
+
+
+class HtmlP(HtmlElement):
+    element = 'p'
+
+
+class HtmlH1(HtmlElement):
+    element = 'h1'
+
+
+class HtmlH2(HtmlElement):
+    element = 'h2'
+
+
+class HtmlH3(HtmlElement):
+    element = 'h3'
+
+
+class HtmlH4(HtmlElement):
+    element = 'h4'
+
+
+class HtmlH5(HtmlElement):
+    element = 'h5'
+
+
+class HtmlH6(HtmlElement):
+    element = 'h6'
+
+
+class HtmlStrong(HtmlElement):
+    element = 'strong'
+
+
+class HtmlEm(HtmlElement):
+    element = 'em'
+
+
+class HtmlUl(HtmlElement):
+    element = 'ul'
+
+
+class HtmlOl(HtmlElement):
+    element = 'ol'
+
+
+class HtmlLi(HtmlElement):
+    element = 'li'
+
+
+class HtmlImg(HtmlElement):
+    element = 'img'
+    end_tag = False
+
+
+class HtmlHr(HtmlElement):
+    element = 'hr'
+    end_tag = False
+
+
+class HtmlBr(HtmlElement):
+    element = 'br'
+    end_tag = False
+
+
+class HtmlForm(HtmlElement):
+    element = 'form'
+
+
+class HtmlSelect(HtmlElement):
+    element = 'select'
+
+
+class HtmlOption(HtmlElement):
+    element = 'option'
+
+
+class HtmlTextarea(HtmlElement):
+    element = 'textarea'
+
+
+class HtmlNav(HtmlElement):
+    element = 'nav'
+
+
+class HtmlHeader(HtmlElement):
+    element = 'header'
+
+
+class HtmlFooter(HtmlElement):
+    element = 'footer'
+
+
+class HtmlSection(HtmlElement):
+    element = 'section'
+
+
+class HtmlMain(HtmlElement):
+    element = 'main'
+
+
 class HtmlButton(HtmlElement):
     element = 'button'
 

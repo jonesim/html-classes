@@ -74,25 +74,114 @@ HtmlElement(element='span', contents='?', tooltip='Help text').render()
 
 ## Convenience elements
 
-Pre-built subclasses so you don't need to pass `element=` every time:
+Pre-built subclasses so you don't need to pass `element=` every time.
+
+### Text and inline
 
 ```python
-from html_classes.html import HtmlDiv, HtmlButton, HtmlLabel, HtmlInput
+from html_classes.html import HtmlP, HtmlSpan, HtmlA, HtmlStrong, HtmlEm
+from html_classes.html import HtmlH1, HtmlH2, HtmlH3, HtmlH4, HtmlH5, HtmlH6
 
-HtmlDiv(contents='Hello', css_classes='container').render()
-# → <div class="container">Hello</div>
+HtmlP(contents='A paragraph.').render()
+# → <p>A paragraph.</p>
+
+HtmlSpan(contents='highlighted', css_classes='text-danger').render()
+# → <span class="text-danger">highlighted</span>
+
+HtmlA(contents='Click here', href='https://example.com').render()
+# → <a href="https://example.com">Click here</a>
+
+HtmlStrong(contents='Bold').render()
+# → <strong>Bold</strong>
+
+HtmlEm(contents='Italic').render()
+# → <em>Italic</em>
+
+HtmlH1(contents='Page title').render()
+# → <h1>Page title</h1>
+```
+
+### Lists
+
+```python
+from html_classes.html import HtmlUl, HtmlOl, HtmlLi
+
+ul = HtmlUl()
+ul += HtmlLi(contents='First')
+ul += HtmlLi(contents='Second')
+ul.render()
+# → <ul><li>First</li><li>Second</li></ul>
+```
+
+### Media and void elements
+
+```python
+from html_classes.html import HtmlImg, HtmlHr, HtmlBr
+
+HtmlImg(src='photo.jpg', alt='A photo').render()
+# → <img src="photo.jpg" alt="A photo"/>
+
+HtmlHr().render()
+# → <hr/>
+
+HtmlBr().render()
+# → <br/>
+```
+
+`HtmlImg`, `HtmlHr`, and `HtmlBr` have `end_tag = False` by default.
+
+### Forms
+
+```python
+from html_classes.html import HtmlForm, HtmlButton, HtmlLabel, HtmlInput, HtmlSelect, HtmlOption, HtmlTextarea
+
+HtmlForm(contents='...', method='post', action='/submit').render()
+# → <form method="post" action="/submit">...</form>
 
 HtmlButton(contents='Click me', css_classes='btn btn-primary').render()
 # → <button class="btn btn-primary">Click me</button>
 
-HtmlLabel(contents='Name', for_='name-input').render()
+HtmlLabel(contents='Name', raw_attributes={'for': 'name-input'}).render()
 # → <label for="name-input">Name</label>
 
 HtmlInput(type='text', name='username').render()
 # → <input type="text" name="username"/>
+
+HtmlSelect(contents='...', name='colour').render()
+# → <select name="colour">...</select>
+
+HtmlOption(contents='Red', value='red').render()
+# → <option value="red">Red</option>
+
+HtmlTextarea(contents='', name='bio', rows='4').render()
+# → <textarea name="bio" rows="4"></textarea>
 ```
 
 `HtmlInput` has `end_tag = False` by default, so it always renders as a self-closing tag.
+
+### Layout and semantic
+
+```python
+from html_classes.html import HtmlDiv, HtmlNav, HtmlHeader, HtmlFooter, HtmlSection, HtmlMain
+
+HtmlNav(contents='...', css_classes='navbar').render()
+# → <nav class="navbar">...</nav>
+
+HtmlHeader(contents='...').render()
+# → <header>...</header>
+
+HtmlFooter(contents='...').render()
+# → <footer>...</footer>
+
+HtmlSection(contents='...').render()
+# → <section>...</section>
+
+HtmlMain(contents='...').render()
+# → <main>...</main>
+
+HtmlDiv(contents='Hello', css_classes='container').render()
+# → <div class="container">Hello</div>
+```
 
 ### Inline helpers
 
