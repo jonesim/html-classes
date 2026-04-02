@@ -101,6 +101,10 @@ class TestHtmlElement(unittest.TestCase):
         self.assertEqual(HtmlElement(element='div', aria_label='close').render(),
                          '<div aria-label="close"></div>')
 
+    def test_trailing_underscore_stripped(self):
+        self.assertEqual(HtmlElement(element='div', for_='field').render(),
+                         '<div for="field"></div>')
+
 
 class TestHtmlRoot(unittest.TestCase):
 
@@ -180,8 +184,7 @@ class TestConvenienceElements(unittest.TestCase):
                          '<button class="btn">Go</button>')
 
     def test_label(self):
-        self.assertEqual(HtmlLabel(contents='Name', raw_attributes={'for': 'f'}).render(),
-                         '<label for="f">Name</label>')
+        self.assertEqual(HtmlLabel(contents='Name', for_='f').render(), '<label for="f">Name</label>')
 
     def test_input(self):
         self.assertEqual(HtmlInput(type='text', name='q').render(), '<input type="text" name="q"/>')

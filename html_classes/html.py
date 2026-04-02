@@ -17,7 +17,7 @@ class HtmlElement:
             self.css_classes.append(self.colour_class + self.colour)
         kwarg_str = '' if not self.css_classes else f' class="{" ".join(self.css_classes)}"'
         for k, v in self.attributes.items():
-            kwarg_str += f' {k.replace("_", "-")}'
+            kwarg_str += f' {k.rstrip("_").replace("_", "-")}'
             if v is not None:
                 kwarg_str += f'="{v}"'
         if self.raw_attributes:

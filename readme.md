@@ -10,6 +10,22 @@ Build HTML from Python classes. Includes helpers for Bootstrap 4 and Font Awesom
 pip install make-html
 ```
 
+## Imports
+
+All classes and helpers are available directly from the top-level package:
+
+```python
+from html_classes import HtmlElement, HtmlDiv, HtmlTable, HtmlBadge, font_awesome
+```
+
+Or import from submodules if preferred:
+
+```python
+from html_classes.html import HtmlElement
+from html_classes.bootstrap import HtmlBadge, HtmlAlert
+from html_classes.font_awesome import font_awesome
+```
+
 ## Basic usage
 
 ```python
@@ -141,7 +157,7 @@ HtmlForm(contents='...', method='post', action='/submit').render()
 HtmlButton(contents='Click me', css_classes='btn btn-primary').render()
 # → <button class="btn btn-primary">Click me</button>
 
-HtmlLabel(contents='Name', raw_attributes={'for': 'name-input'}).render()
+HtmlLabel(contents='Name', for_='name-input').render()
 # → <label for="name-input">Name</label>
 
 HtmlInput(type='text', name='username').render()
@@ -257,7 +273,7 @@ HtmlTable(data=[
 ## Bootstrap 4 components
 
 ```python
-from html_classes.bs4 import HtmlBadge, HtmlAlert
+from html_classes.bootstrap import HtmlBadge, HtmlAlert
 
 HtmlBadge(contents='New').render()
 # → <span class="badge badge-primary">New</span>

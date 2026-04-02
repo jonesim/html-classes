@@ -1,6 +1,6 @@
 import unittest
 
-from html_classes.bs4 import HtmlBadge, HtmlAlert
+from html_classes.bootstrap import HtmlBadge, HtmlAlert
 
 
 class TestBs4(unittest.TestCase):
