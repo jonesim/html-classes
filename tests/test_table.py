@@ -84,3 +84,36 @@ class TestTable(unittest.TestCase):
 
     def test_empty_table(self):
         self.assertEqual(HtmlTable().render(), '<table></table>')
+
+    def test_render_body_rows(self):
+        self.assertEqual(HtmlTable(data=[[1, 2], [3, 4]]).render_body_rows(),
+                         '<tr><td>1</td><td>2</td></tr><tr><td>3</td><td>4</td></tr>')
+
+    def test_render_body_rows_no_tbody_when_grouped(self):
+        self.assertEqual(HtmlTable(data=[[1, 2], [3, 4]], grouped=True).render_body_rows(),
+                         '<tr><td>1</td><td>2</td></tr><tr><td>3</td><td>4</td></tr>')
+
+    def test_render_body_rows_skips_headers(self):
+        self.assertEqual(HtmlTable(data=[['A', 'B'], [1, 2]], headers=1).render_body_rows(),
+                         '<tr><td>1</td><td>2</td></tr>')
+
+    def test_render_body_rows_row_classes(self):
+        self.assertEqual(HtmlTable(data=[[1, 2]], row_classes='highlight').render_body_rows(),
+                         '<tr class="highlight"><td>1</td><td>2</td></tr>')
+
+    def test_render_body_rows_cell_classes(self):
+        self.assertEqual(HtmlTable(data=[[1, 2]], cell_classes='p-1').render_body_rows(),
+                         '<tr><td class="p-1">1</td><td class="p-1">2</td></tr>')
+
+    def test_render_row(self):
+        t = HtmlTable(data=[[1, 2], [3, 4]])
+        self.assertEqual(t.render_row(0), '<tr><td>1</td><td>2</td></tr>')
+        self.assertEqual(t.render_row(1), '<tr><td>3</td><td>4</td></tr>')
+
+    def test_render_row_skips_headers(self):
+        self.assertEqual(HtmlTable(data=[['A', 'B'], [1, 2]], headers=1).render_row(0),
+                         '<tr><td>1</td><td>2</td></tr>')
+
+    def test_render_row_htmltr(self):
+        self.assertEqual(HtmlTable(data=[HtmlTr(['a', 'b'])]).render_row(0),
+                         '<tr><td>a</td><td>b</td></tr>')

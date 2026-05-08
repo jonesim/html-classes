@@ -253,6 +253,18 @@ class HtmlTable(HtmlElement):
                                          css_classes=classes, raw_attributes=raw_attrs).render())
         return ''.join(cells)
 
+    def _render_body_rows(self):
+        body_rows = []
+        for r in self.rows[self.headers:]:
+            if isinstance(r, HtmlTr):
+                body_rows.append(r)
+            else:
+                body_rows.append(
+                    self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
+                    self._render_cells(r[self.left_headers:], 'td', base_classes=self.cell_classes)
+                )
+        return self.add_multiple_elements(body_rows, 'tr', css_classes=self.row_classes)
+
     def get_contents(self):
         colgroup = ''
         if self.col_widths:
@@ -272,20 +284,24 @@ class HtmlTable(HtmlElement):
         else:
             header = ''
 
-        body_rows = []
-        for r in self.rows[self.headers:]:
-            if isinstance(r, HtmlTr):
-                body_rows.append(r)
-            else:
-                body_rows.append(
-                    self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
-                    self._render_cells(r[self.left_headers:], 'td', base_classes=self.cell_classes)
-                )
-        body = self.add_multiple_elements(body_rows, 'tr', css_classes=self.row_classes)
+        body = self._render_body_rows()
         if self.grouped:
             body = HtmlElement(element='tbody', contents=body).render()
 
         return colgroup + header + body
+
+    def render_body_rows(self):
+        return mark_safe(self._render_body_rows())
+
+    def render_row(self, index):
+        r = self.rows[self.headers:][index]
+        if isinstance(r, HtmlTr):
+            return mark_safe(r.render())
+        cells_html = (
+            self.add_multiple_elements(r[:self.left_headers], 'th', css_classes=self.header_classes) +
+            self._render_cells(r[self.left_headers:], 'td', base_classes=self.cell_classes)
+        )
+        return mark_safe(self.add_multiple_elements([cells_html], 'tr', css_classes=self.row_classes))
 
     def __init__(self, data=None, headers=0, left_headers=0, cell_classes=None, header_classes=None, row_classes=None,
                  grouped=False, col_widths=None, col_styles=None, col_classes=None, **kwargs):
