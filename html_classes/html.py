@@ -11,18 +11,20 @@ class HtmlElement:
     colour_class = ''
     default_colour = None
     end_tag = True
+    single_quote = False
 
     def convert_kwargs(self):
         if self.colour:
             self.css_classes.append(self.colour_class + self.colour)
-        kwarg_str = '' if not self.css_classes else f' class="{" ".join(self.css_classes)}"'
+        q = "'" if self.single_quote else '"'
+        kwarg_str = '' if not self.css_classes else f' class={q}{" ".join(self.css_classes)}{q}'
         for k, v in self.attributes.items():
             kwarg_str += f' {k.rstrip("_").replace("_", "-")}'
             if v is not None:
-                kwarg_str += f'="{v}"'
+                kwarg_str += f'={q}{v}{q}'
         if self.raw_attributes:
             for k, v in self.raw_attributes.items():
-                kwarg_str += f' {k}="{v}"'
+                kwarg_str += f' {k}={q}{v}{q}'
         return kwarg_str
 
     def tool_tip(self, tooltip):
@@ -30,9 +32,11 @@ class HtmlElement:
             self.attributes.update({'data-tooltip': "tooltip", 'data-original-title': tooltip, 'data-html': 'true'})
 
     def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, end_tag=None,
-                 raw_attributes=None, **kwargs):
+                 raw_attributes=None, single_quote=None, **kwargs):
         if element:
             self.element = element
+        if single_quote is not None:
+            self.single_quote = single_quote
         self._contents = contents if isinstance(contents, list) else ([contents] if contents else [])
         self.attributes = kwargs
         self.tool_tip(tooltip)

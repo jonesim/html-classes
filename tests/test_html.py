@@ -105,6 +105,20 @@ class TestHtmlElement(unittest.TestCase):
         self.assertEqual(HtmlElement(element='div', for_='field').render(),
                          '<div for="field"></div>')
 
+    def test_single_quote_attributes(self):
+        self.assertEqual(HtmlElement(element='button', contents='Go', onclick='f("x")',
+                                     single_quote=True).render(),
+                         '<button onclick=\'f("x")\'>Go</button>')
+
+    def test_single_quote_class_and_raw_attributes(self):
+        self.assertEqual(HtmlElement(css_classes='btn', raw_attributes={'style': 'width: 1px;'},
+                                     single_quote=True).render(),
+                         "<div class='btn' style='width: 1px;'></div>")
+
+    def test_default_double_quote_attributes(self):
+        self.assertEqual(HtmlElement(element='button', contents='Go', data_test='1').render(),
+                         '<button data-test="1">Go</button>')
+
 
 class TestHtmlRoot(unittest.TestCase):
 
