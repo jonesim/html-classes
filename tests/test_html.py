@@ -87,8 +87,34 @@ class TestHtmlElement(unittest.TestCase):
 
     def test_tooltip(self):
         el = HtmlElement(element='span', contents='?', tooltip='Help text')
-        self.assertEqual(el.render(),
-                         '<span data-tooltip="tooltip" data-original-title="Help text" data-html="true">?</span>')
+        self.assertEqual(el.render(), '<span title="Help text" data-tooltip="tooltip">?</span>')
+
+    def test_tooltip_matches_ecosystem_contract(self):
+        """django-modals helper.attr() and django_menus MenuItem emit the same pair."""
+        el = HtmlElement(element='span', contents='?', tooltip='Help text')
+        self.assertIn('title="Help text"', el.render())
+        self.assertIn('data-tooltip="tooltip"', el.render())
+
+    def test_tooltip_drops_bootstrap4_internals(self):
+        """data-original-title is a BS4 internal and breaks under BS5, which needs a real title."""
+        rendered = HtmlElement(element='span', contents='?', tooltip='Help text').render()
+        self.assertNotIn('data-original-title', rendered)
+        self.assertNotIn('data-html', rendered)
+
+    def test_tooltip_html_still_available_via_kwargs(self):
+        el = HtmlElement(element='span', contents='?', tooltip='<b>Help</b>', data_bs_html='true')
+        self.assertIn('data-bs-html="true"', el.render())
+
+    def test_tooltip_placement_via_kwargs(self):
+        el = HtmlElement(element='span', contents='?', tooltip='Help', data_placement='bottom')
+        self.assertIn('data-placement="bottom"', el.render())
+
+    def test_no_tooltip_leaves_attributes_alone(self):
+        self.assertEqual(HtmlElement(element='span', contents='?').render(), '<span>?</span>')
+
+    def test_tooltip_overrides_explicit_title(self):
+        el = HtmlElement(element='span', contents='?', title='ignored', tooltip='Help text')
+        self.assertEqual(el.render(), '<span title="Help text" data-tooltip="tooltip">?</span>')
 
     def test_colour(self):
         class ColouredEl(HtmlElement):
@@ -118,6 +144,39 @@ class TestHtmlElement(unittest.TestCase):
     def test_default_double_quote_attributes(self):
         self.assertEqual(HtmlElement(element='button', contents='Go', data_test='1').render(),
                          '<button data-test="1">Go</button>')
+
+    def test_colour_class_not_duplicated_on_repeated_render(self):
+        class ColouredEl(HtmlElement):
+            colour_class = 'text-'
+            default_colour = 'primary'
+        el = ColouredEl(contents='hi')
+        self.assertEqual(el.render(), '<div class="text-primary">hi</div>')
+        self.assertEqual(el.render(), '<div class="text-primary">hi</div>')
+        self.assertEqual(el.render(), '<div class="text-primary">hi</div>')
+
+    def test_colour_class_not_duplicated_when_nested(self):
+        class ColouredEl(HtmlElement):
+            colour_class = 'text-'
+            default_colour = 'primary'
+        outer = HtmlElement(contents=ColouredEl(contents='hi'))
+        self.assertEqual(outer.render(), '<div><div class="text-primary">hi</div></div>')
+        self.assertEqual(outer.render(), '<div><div class="text-primary">hi</div></div>')
+
+    def test_css_classes_as_str_subclass(self):
+        class SafeString(str):
+            pass
+        self.assertEqual(HtmlElement(css_classes=SafeString('btn btn-primary')).render(),
+                         '<div class="btn btn-primary"></div>')
+
+    def test_falsy_contents_rendered(self):
+        self.assertEqual(HtmlElement(contents=0).render(), '<div>0</div>')
+        self.assertEqual(HtmlElement(contents=False).render(), '<div>False</div>')
+        self.assertEqual(HtmlElement(contents='').render(), '<div></div>')
+
+    def test_no_contents_still_empty(self):
+        self.assertEqual(HtmlElement().render(), '<div></div>')
+        self.assertEqual(HtmlElement(contents=None).render(), '<div></div>')
+        self.assertEqual(HtmlElement(element='br', end_tag=False).render(), '<br/>')
 
 
 class TestHtmlRoot(unittest.TestCase):

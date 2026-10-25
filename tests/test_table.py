@@ -57,6 +57,16 @@ class TestTable(unittest.TestCase):
         self.assertIn('<thead>', result)
         self.assertIn('<tbody>', result)
 
+    def test_col_widths_keeps_supplied_raw_attributes(self):
+        result = HtmlTable(data=[[1, 2]], col_widths=['50%', '50%'], raw_attributes={'id': 't'}).render()
+        self.assertIn('id="t"', result)
+        self.assertIn('table-layout: fixed', result)
+
+    def test_col_widths_merges_supplied_style(self):
+        result = HtmlTable(data=[[1, 2]], col_widths=['50%', '50%'],
+                           raw_attributes={'style': 'border: 1px solid;'}).render()
+        self.assertIn('style="table-layout: fixed; width: 100%; border: 1px solid;"', result)
+
     def test_col_styles(self):
         result = HtmlTable(data=[[1, 2]], col_styles=['text-align: right;', None]).render()
         self.assertIn('<td style="text-align: right;">1</td>', result)
@@ -81,6 +91,13 @@ class TestTable(unittest.TestCase):
 
     def test_htmlth(self):
         self.assertEqual(HtmlTh(contents='hdr').render(), '<th>hdr</th>')
+
+    def test_htmltd_zero_contents(self):
+        self.assertEqual(HtmlTd(0).render(), '<td>0</td>')
+
+    def test_table_with_htmltd_zero(self):
+        self.assertEqual(HtmlTable(data=[[HtmlTd(0), 1]]).render(),
+                         '<table><tr><td>0</td><td>1</td></tr></table>')
 
     def test_empty_table(self):
         self.assertEqual(HtmlTable().render(), '<table></table>')

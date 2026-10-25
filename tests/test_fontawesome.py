@@ -2,6 +2,8 @@ import unittest
 
 from html_classes.font_awesome import font_awesome
 
+from . import django_required, override_settings
+
 
 class TestFontAwesome(unittest.TestCase):
 
@@ -24,12 +26,14 @@ class TestFontAwesome(unittest.TestCase):
 
     def test_tooltip_passthrough(self):
         result = font_awesome('fas fa-info', tooltip='Help')
-        self.assertIn('data-original-title="Help"', result)
+        self.assertIn('title="Help"', result)
+        self.assertIn('data-tooltip="tooltip"', result)
 
+    @django_required
     def test_django_settings(self):
-        try:
-            from django.conf import settings
-            settings.configure(FONT_AWESOME_LIBRARY={'edit': 'fas fa-pen'})
-        except ImportError:
-            pass
-        self.assertEqual(font_awesome('edit'), '<i class="fas fa-pen"></i>')
+        with override_settings(FONT_AWESOME_LIBRARY={'edit': 'fas fa-pen'}):
+            self.assertEqual(font_awesome('edit'), '<i class="fas fa-pen"></i>')
+
+    @django_required
+    def test_django_settings_absent(self):
+        self.assertEqual(font_awesome('edit'), '<i class="edit"></i>')

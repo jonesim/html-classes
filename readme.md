@@ -2,7 +2,7 @@
 
 # make-html
 
-Build HTML from Python classes. Includes helpers for Bootstrap 4 and Font Awesome. Django integration is optional — the library works standalone.
+Build HTML from Python classes. Includes helpers for Bootstrap (4 and 5) and Font Awesome. Django integration is optional — the library works standalone.
 
 ## Installation
 
@@ -50,6 +50,18 @@ HtmlElement(element='br', end_tag=False).render()
 
 `__str__` calls `render()`, so elements can be used directly in f-strings or nested inside other elements.
 
+## Escaping
+
+Contents and attribute values are inserted verbatim — nothing is escaped. Under Django, `render()` returns a `mark_safe` string, so the template engine will not escape it either. Escape any untrusted value before passing it in:
+
+```python
+from django.utils.html import escape
+
+HtmlElement(element='a', href=escape(user_supplied_url), contents=escape(user_supplied_text))
+```
+
+`single_quote=True` switches attribute quoting to `'`, which helps when a value legitimately contains `"` — it is not a substitute for escaping.
+
 ## Building up content
 
 ```python
@@ -81,12 +93,36 @@ el = HtmlElement()
 el.add_class('extra-class another-class')
 ```
 
-## Tooltips (Bootstrap)
+## Tooltips
 
 ```python
 HtmlElement(element='span', contents='?', tooltip='Help text').render()
-# → <span data-tooltip="tooltip" data-original-title="Help text" data-html="true">?</span>
+# → <span title="Help text" data-tooltip="tooltip">?</span>
 ```
+
+`title` carries the text; `data-tooltip="tooltip"` is the hook your page initialises on:
+
+```javascript
+// Bootstrap 5
+document.querySelectorAll('[data-tooltip="tooltip"]')
+        .forEach(el => new bootstrap.Tooltip(el));
+
+// Bootstrap 4
+$('[data-tooltip="tooltip"]').tooltip();
+```
+
+This is the same pair django-nested-modals and django-tab-menus emit, so one initialiser covers all three. With no JS at all it degrades to a native browser tooltip.
+
+Placement and other options go through normal kwargs (underscores become hyphens):
+
+```python
+HtmlElement(element='span', contents='?', tooltip='Help', data_placement='bottom')
+# → <span data-placement="bottom" title="Help" data-tooltip="tooltip">?</span>
+
+HtmlElement(element='span', contents='?', tooltip='<b>Help</b>', data_bs_html='true')  # BS5 HTML tooltip
+```
+
+`tooltip=` takes precedence over an explicit `title=` kwarg.
 
 ## Convenience elements
 
@@ -199,17 +235,6 @@ HtmlDiv(contents='Hello', css_classes='container').render()
 # → <div class="container">Hello</div>
 ```
 
-### Inline helpers
-
-```python
-from html_classes.basic import html_i
-
-html_i('Some italic text')
-# → <i>Some italic text</i>
-```
-
-Returns the rendered string directly (not an `HtmlElement` instance).
-
 ## Tables
 
 ```python
@@ -270,7 +295,7 @@ HtmlTable(data=[
 ])
 ```
 
-## Bootstrap 4 components
+## Bootstrap components
 
 ```python
 from html_classes.bootstrap import HtmlBadge, HtmlAlert
@@ -285,14 +310,43 @@ HtmlAlert(contents='Saved!', colour='success').render()
 # → <div class="alert alert-success">Saved!</div>
 ```
 
+### Choosing Bootstrap 4 or 5
+
+Bootstrap 5 renamed the badge colour classes from `badge-{colour}` to `text-bg-{colour}`. `HtmlBadge` follows whichever framework is selected; `HtmlAlert` is unchanged between the two.
+
+The default is `bootstrap4`, so existing code is unaffected.
+
+**In Django**, set `CSS_FRAMEWORK` — the same setting django-ajax-helpers uses, so one value drives both:
+
+```python
+# settings.py
+CSS_FRAMEWORK = 'bootstrap5'
+```
+
+**Standalone**, call `set_css_framework()`:
+
+```python
+from html_classes import set_css_framework, HtmlBadge
+
+set_css_framework('bootstrap5')
+HtmlBadge(contents='New').render()
+# → <span class="badge text-bg-primary">New</span>
+```
+
+`set_css_framework()` takes precedence over the Django setting; pass `None` to clear it. An unsupported value raises `ImproperlyConfigured`. The framework is read at render time, so `override_settings` works in tests.
+
+When django-ajax-helpers 1.0.0+ is installed, `get_css_framework()` defers to `ajax_helpers.config` so the ecosystem shares one implementation; otherwise an equivalent local implementation reads the same setting.
+
 ## Font Awesome
 
 ```python
 from html_classes.font_awesome import font_awesome
 
-font_awesome('fas fa-question').render()
+font_awesome('fas fa-question')
 # → <i class="fas fa-question"></i>
 ```
+
+`font_awesome` returns the rendered string directly, not an `HtmlElement` instance.
 
 ### Icon aliasing (Django)
 
@@ -339,3 +393,15 @@ class MyButton(HtmlElement):
 - `default_classes` — CSS classes applied when none are provided at init
 - `colour_class` — prefix prepended to the `colour` value to form a class (e.g. `colour_class='btn-'` + `colour='danger'` → `btn-danger`)
 - `default_colour` — fallback colour when none is passed
+
+`colour_class` can also be a dict keyed by CSS framework, for components whose class name changed between Bootstrap 4 and 5:
+
+```python
+class MyBadge(HtmlElement):
+    element = 'span'
+    default_classes = ['badge']
+    colour_class = {'bootstrap4': 'badge-', 'bootstrap5': 'text-bg-'}
+    default_colour = 'primary'
+```
+
+Override `get_colour_class()` if you need to resolve the prefix some other way.

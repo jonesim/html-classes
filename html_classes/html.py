@@ -1,4 +1,6 @@
 
+from .config import get_css_framework
+
 try:
     from django.utils.safestring import mark_safe
 except ImportError:
@@ -13,11 +15,19 @@ class HtmlElement:
     end_tag = True
     single_quote = False
 
+    def get_colour_class(self):
+        """Resolve ``colour_class``, which may be a plain prefix or a dict keyed by CSS framework.
+
+        Called from render(), so the framework is read at render time and honours override_settings.
+        """
+        if isinstance(self.colour_class, dict):
+            return self.colour_class[get_css_framework()]
+        return self.colour_class
+
     def convert_kwargs(self):
-        if self.colour:
-            self.css_classes.append(self.colour_class + self.colour)
+        css_classes = (self.css_classes + [self.get_colour_class() + self.colour]) if self.colour else self.css_classes
         q = "'" if self.single_quote else '"'
-        kwarg_str = '' if not self.css_classes else f' class={q}{" ".join(self.css_classes)}{q}'
+        kwarg_str = '' if not css_classes else f' class={q}{" ".join(css_classes)}{q}'
         for k, v in self.attributes.items():
             kwarg_str += f' {k.rstrip("_").replace("_", "-")}'
             if v is not None:
@@ -28,8 +38,14 @@ class HtmlElement:
         return kwarg_str
 
     def tool_tip(self, tooltip):
+        """Emit the ecosystem's static tooltip contract: a real ``title`` plus a hook attribute.
+
+        Apps initialise on the ``[data-tooltip="tooltip"]`` selector, which works under Bootstrap 4,
+        Bootstrap 5 and vanilla replacements alike, and degrades to a native browser tooltip with no
+        JS at all. Matches django-modals' helper.attr() and django_menus' MenuItem.
+        """
         if tooltip:
-            self.attributes.update({'data-tooltip': "tooltip", 'data-original-title': tooltip, 'data-html': 'true'})
+            self.attributes.update({'title': tooltip, 'data-tooltip': 'tooltip'})
 
     def __init__(self, contents=None, css_classes=None, element=None, tooltip=None, colour=None, end_tag=None,
                  raw_attributes=None, single_quote=None, **kwargs):
@@ -37,13 +53,13 @@ class HtmlElement:
             self.element = element
         if single_quote is not None:
             self.single_quote = single_quote
-        self._contents = contents if isinstance(contents, list) else ([contents] if contents else [])
+        self._contents = contents if isinstance(contents, list) else ([] if contents is None else [contents])
         self.attributes = kwargs
         self.tool_tip(tooltip)
         self.raw_attributes = raw_attributes
         self.colour = colour if colour else self.default_colour
         if css_classes:
-            self.css_classes = css_classes.split(' ') if type(css_classes) == str else css_classes.copy()
+            self.css_classes = css_classes.split(' ') if isinstance(css_classes, str) else css_classes.copy()
         else:
             self.css_classes = self.default_classes.copy()
         if end_tag is not None:
@@ -309,8 +325,12 @@ class HtmlTable(HtmlElement):
 
     def __init__(self, data=None, headers=0, left_headers=0, cell_classes=None, header_classes=None, row_classes=None,
                  grouped=False, col_widths=None, col_styles=None, col_classes=None, **kwargs):
-        if col_widths and 'raw_attributes' not in kwargs:
-            kwargs['raw_attributes'] = {'style': 'table-layout: fixed; width: 100%;'}
+        if col_widths:
+            raw_attributes = dict(kwargs.get('raw_attributes') or {})
+            layout = 'table-layout: fixed; width: 100%;'
+            style = raw_attributes.get('style')
+            raw_attributes['style'] = f'{layout} {style}' if style else layout
+            kwargs['raw_attributes'] = raw_attributes
         super().__init__(**kwargs)
         self._data = data
         self.grouped = grouped or bool(col_widths)

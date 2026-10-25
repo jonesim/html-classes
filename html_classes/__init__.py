@@ -11,4 +11,5 @@ from .html import (
     HtmlTable, HtmlTr, HtmlTd, HtmlTh,
 )
 from .bootstrap import HtmlBadge, HtmlAlert
+from .config import get_css_framework, set_css_framework
 from .font_awesome import font_awesome
