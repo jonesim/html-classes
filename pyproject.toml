@@ -1,15 +1,16 @@
 
 [build-system]
-requires      = ["setuptools>=61.0.0", "wheel"]
+requires      = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "make-html"
-version = "0.0.3"
+version = "1.0.0"
 description = "Classes to generate HTML"
 readme = "readme.md"
 authors = [{ name = "Ian Jones"}]
 license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
