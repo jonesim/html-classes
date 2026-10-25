@@ -1,5 +1,6 @@
 import unittest
 
+from . import django_required
 from html_classes.font_awesome import font_awesome
 from html_classes.html import (
     HtmlElement, HtmlRoot,
@@ -144,6 +145,40 @@ class TestHtmlElement(unittest.TestCase):
     def test_default_double_quote_attributes(self):
         self.assertEqual(HtmlElement(element='button', contents='Go', data_test='1').render(),
                          '<button data-test="1">Go</button>')
+
+    def test_attribute_double_quote_escaped(self):
+        self.assertEqual(HtmlElement(title='Say "hi"').render(), '<div title="Say &quot;hi&quot;"></div>')
+
+    def test_attribute_ampersand_escaped(self):
+        self.assertEqual(HtmlA(href='/?a=1&b=2').render(), '<a href="/?a=1&amp;b=2"></a>')
+
+    def test_attribute_angle_brackets_kept(self):
+        self.assertEqual(HtmlElement(title='<b>Help</b>').render(), '<div title="<b>Help</b>"></div>')
+
+    def test_attribute_non_string_value(self):
+        self.assertEqual(HtmlElement(data_count=3).render(), '<div data-count="3"></div>')
+
+    def test_tooltip_escaped(self):
+        self.assertEqual(HtmlElement(tooltip='<span class="x">A & B</span>').render(),
+                         '<div title="<span class=&quot;x&quot;>A &amp; B</span>" data-tooltip="tooltip"></div>')
+
+    def test_raw_attribute_and_class_escaped(self):
+        self.assertEqual(HtmlElement(css_classes='a"b', raw_attributes={'style': 'font-family: "Arial"'}).render(),
+                         '<div class="a&quot;b" style="font-family: &quot;Arial&quot;"></div>')
+
+    def test_single_quote_escapes_only_single_quote(self):
+        self.assertEqual(HtmlElement(element='button', onclick='f("it\'s")', single_quote=True).render(),
+                         '<button onclick=\'f("it&#x27;s")\'></button>')
+
+    @django_required
+    def test_pre_escaped_value_not_double_escaped(self):
+        from django.utils.html import escape
+        self.assertEqual(HtmlA(href=escape('/?a=1&b="2"')).render(), '<a href="/?a=1&amp;b=&quot;2&quot;"></a>')
+
+    @django_required
+    def test_safe_html_value_has_quotes_escaped(self):
+        self.assertEqual(HtmlElement(tooltip=HtmlSpan('Help', css_classes='x')).render(),
+                         '<div title="<span class=&quot;x&quot;>Help</span>" data-tooltip="tooltip"></div>')
 
     def test_colour_class_not_duplicated_on_repeated_render(self):
         class ColouredEl(HtmlElement):

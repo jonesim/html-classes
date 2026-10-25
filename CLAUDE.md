@@ -36,7 +36,8 @@ All core HTML generation lives in `html_classes/html.py`:
 
 - **`HtmlElement`** — base class for all HTML elements. Renders `<element class="..." attr="...">contents</element>`. Key behaviours:
   - `kwargs` become HTML attributes; underscores are converted to hyphens (e.g. `data_test` → `data-test`)
-  - `raw_attributes` dict bypasses underscore conversion
+  - `raw_attributes` dict bypasses underscore conversion (not escaping)
+  - Attribute values (class, `attributes`, `raw_attributes`) go through `escape_attribute()`: the active quote character is always escaped (idempotent on pre-escaped text); `&` is escaped only when the value is not `SafeData`, so Django-`escape()`d values aren't double-escaped; `<`/`>` are kept so HTML tooltips work. Contents are never escaped.
   - `default_classes`, `colour_class`, `default_colour` are class-level overrides used by subclasses
   - `colour_class` is either a prefix string or a dict keyed by CSS framework (`{'bootstrap4': 'badge-', 'bootstrap5': 'text-bg-'}`), resolved by `get_colour_class()` at render time
   - `end_tag=False` renders a self-closing tag (`<br/>`)

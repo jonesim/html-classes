@@ -52,15 +52,28 @@ HtmlElement(element='br', end_tag=False).render()
 
 ## Escaping
 
-Contents and attribute values are inserted verbatim — nothing is escaped. Under Django, `render()` returns a `mark_safe` string, so the template engine will not escape it either. Escape any untrusted value before passing it in:
+**Attribute values** (including `css_classes`, `raw_attributes` and `tooltip`) are escaped so they can never end the attribute early:
+
+- the quote character is always escaped (`"` → `&quot;`, or `'` → `&#x27;` with `single_quote=True`)
+- `&` → `&amp;`, unless the value is marked safe (e.g. already passed through Django's `escape()`), so pre-escaped values are not double-escaped
+- `<` and `>` are left as they are — they are legal inside a quoted attribute, so an HTML tooltip still works
+
+```python
+HtmlA(href='/?a=1&b=2', title='Say "hi"').render()
+# → <a href="/?a=1&amp;b=2" title="Say &quot;hi&quot;"></a>
+```
+
+**Contents** are inserted verbatim — not escaped. Under Django, `render()` returns a `mark_safe` string, so the template engine will not escape it either. Escape any untrusted contents before passing them in:
 
 ```python
 from django.utils.html import escape
 
-HtmlElement(element='a', href=escape(user_supplied_url), contents=escape(user_supplied_text))
+HtmlElement(element='a', href=user_supplied_url, contents=escape(user_supplied_text))
 ```
 
-`single_quote=True` switches attribute quoting to `'`, which helps when a value legitimately contains `"` — it is not a substitute for escaping.
+Attribute escaping only keeps the markup well-formed — it does not make an untrusted value safe to use as a URL (`javascript:` hrefs) or as event-handler code.
+
+`single_quote=True` switches attribute quoting to `'`, so a value containing `"` (e.g. JSON in an `onclick`) is output without `&quot;` entities.
 
 ## Building up content
 

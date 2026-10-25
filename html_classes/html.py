@@ -2,9 +2,26 @@
 from .config import get_css_framework
 
 try:
-    from django.utils.safestring import mark_safe
+    from django.utils.safestring import mark_safe, SafeData
 except ImportError:
     mark_safe = lambda a: a
+
+    class SafeData:
+        pass
+
+
+def escape_attribute(value, quote):
+    """Make ``value`` safe inside an attribute delimited by ``quote``.
+
+    The delimiter is always escaped: it can only ever end the attribute early, and escaping it is
+    idempotent on already-escaped text. ``&`` is escaped too unless the value is marked safe, so a
+    value pre-escaped with Django's ``escape()`` is not double-escaped. ``<``/``>`` are legal in a
+    quoted attribute and left alone.
+    """
+    value = str(value)
+    if not isinstance(value, SafeData):
+        value = value.replace('&', '&amp;')
+    return value.replace(quote, '&quot;' if quote == '"' else '&#x27;')
 
 
 class HtmlElement:
@@ -27,14 +44,14 @@ class HtmlElement:
     def convert_kwargs(self):
         css_classes = (self.css_classes + [self.get_colour_class() + self.colour]) if self.colour else self.css_classes
         q = "'" if self.single_quote else '"'
-        kwarg_str = '' if not css_classes else f' class={q}{" ".join(css_classes)}{q}'
+        kwarg_str = '' if not css_classes else f' class={q}{escape_attribute(" ".join(css_classes), q)}{q}'
         for k, v in self.attributes.items():
             kwarg_str += f' {k.rstrip("_").replace("_", "-")}'
             if v is not None:
-                kwarg_str += f'={q}{v}{q}'
+                kwarg_str += f'={q}{escape_attribute(v, q)}{q}'
         if self.raw_attributes:
             for k, v in self.raw_attributes.items():
-                kwarg_str += f' {k}={q}{v}{q}'
+                kwarg_str += f' {k}={q}{escape_attribute(v, q)}{q}'
         return kwarg_str
 
     def tool_tip(self, tooltip):
